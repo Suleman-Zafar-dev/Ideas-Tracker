@@ -1,110 +1,55 @@
+
 "use client";
 
-import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push("/protected");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+export default function Hero() {
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/auth/forgot-password"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
-              </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/sign-up"
-                className="underline underline-offset-4"
-              >
-                Sign up
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <section className="relative bg-gray-50">
+      <div className="mx-auto max-w-7xl px-6 py-24 lg:flex lg:items-center lg:gap-x-12">
+        {/* Left content */}
+        <div className="mx-auto max-w-2xl lg:mx-0 lg:flex-auto">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+            Turn Ideas Into Action, Faster 🚀
+          </h1>
+          <p className="mt-6 text-lg leading-8 text-gray-600">
+            Capture, organize, and track ideas from brainstorm to execution. Empower your team
+            with a simple, collaborative workspace built for innovation.
+          </p>
+          <div className="mt-8 flex gap-x-4">
+            <Link
+              href="/signup"
+              className="rounded-md bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-indigo-500"
+            >
+              Get Started Free
+            </Link>
+            <Link
+              href="/demo"
+              className="rounded-md border border-gray-300 px-6 py-3 text-base font-semibold text-gray-700 hover:bg-gray-100"
+            >
+              Book a Demo
+            </Link>
+          </div>
+          {/* Social proof */}
+          <div className="mt-10 flex items-center gap-x-6 text-sm text-gray-500">
+            <span>Trusted by teams at</span>
+            <Image src="/logos/google.svg" alt="Google" width={80} height={20} />
+            <Image src="/logos/slack.svg" alt="Slack" width={80} height={20} />
+          </div>
+        </div>
+
+        {/* Right visual */}
+        <div className="mt-16 lg:mt-0 lg:flex-shrink-0 lg:flex-grow">
+          <Image
+            src="/images/dashboard.png"
+            alt="App dashboard preview"
+            width={800}
+            height={500}
+            className="rounded-xl shadow-lg"
+          />
+        </div>
+      </div>
+    </section>
   );
 }
