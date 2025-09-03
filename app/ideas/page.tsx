@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import debounce from "lodash/debounce";
+import { debounce } from "lodash";
 import Link from "next/link";
 
 const supabase = createClient();
