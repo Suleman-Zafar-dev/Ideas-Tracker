@@ -1,90 +1,82 @@
 "use client";
-import Footer from '@/components/footer'
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FileText, CheckCircle2, Zap } from "lucide-react";
 
 const supabase = createClient();
 
-const Page = () => {
-  const [content, setContent] = useState("");
-  const [tag, setTag] = useState("");
-  const [loading, setLoading] = useState(false);
+export default function DashboardPage() {
+  const [ideas, setIdeas] = useState<any[]>([]);
 
-  async function handleSave() {
-    setLoading(true);
+  useEffect(() => {
+    fetchIdeas();
+  }, []);
 
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      alert("Not signed in");
-      setLoading(false);
-      return;
+  async function fetchIdeas() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("ideas")
+      .select("id, title, description, tag, attachments, next_actions, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setIdeas(data);
     }
-
-    // Insert idea with user_id + tag
-    const { error } = await supabase.from("ideas").insert({
-      content,
-      tag,
-      user_id: user.id,
-    });
-
-    if (error) {
-      alert("Error saving: " + error.message);
-    } else {
-      alert(`Idea saved under tag "${tag}"`);
-      setContent("");
-      setTag("");
-    }
-    setLoading(false);
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-grow mx-auto w-full max-w-4xl px-6 lg:px-8 py-20">
-        <h1 className="text-4xl font-bold mb-10">What’s On Your Mind?</h1>
+    <div className="max-w-7xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
-        {/* Idea Capture Box */}
-        <div className="relative rounded-2xl shadow-lg p-8 space-y-6">
-          <textarea
-            rows={4}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Type your idea here..."
-            className="w-full resize-none text-lg leading-relaxed border rounded-xl p-6 pr-24 focus:outline-none focus:ring-2"
-          />
+      {ideas.length === 0 ? (
+        <p className="text-muted-foreground">No ideas yet. Start by creating one!</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {ideas.map((idea) => {
+            const hasAttachments = idea.attachments?.length > 0;
+            const completedActions = idea.next_actions?.filter((a: any) => a.done).length || 0;
+            const pendingActions = idea.next_actions?.filter((a: any) => !a.done).length || 0;
 
-          {/* Tag Input */}
-          <input
-            type="text"
-            value={tag}
-            onChange={(e) => setTag(e.target.value)}
-            placeholder="Add a tag (e.g. marketing)"
-            className="w-full border rounded-xl p-3 text-lg focus:outline-none focus:ring-2"
-          />
+            return (
+              <Link key={idea.id} href={`/ideas/${idea.id}`}>
+                <Card className="cursor-pointer transition hover:shadow-md hover:bg-accent">
+                  <CardContent className="p-4 space-y-2">
+                    {/* Title */}
+                    <h2 className="font-semibold truncate">{idea.title || "Untitled Idea"}</h2>
 
-          {/* Action Row */}
-          <div className="flex items-center justify-between mt-4">
-            {/* Left icons placeholders */}
-            <div className="flex space-x-4 text-sm font-medium">
-              <button type="button" aria-label="Voice to Text">MIC_ICON</button>
-              <button type="button" aria-label="Upload File">UPLOAD_ICON</button>
-            </div>
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {idea.description || "No description added"}
+                    </p>
 
-            {/* Right Save button */}
-            <button
-              onClick={handleSave}
-              disabled={loading}
-              className="rounded-lg px-6 py-2 font-semibold shadow-sm bg-blue-600 text-white hover:bg-blue-700"
-            >
-              {loading ? "Saving..." : "Save"}
-            </button>
-          </div>
+                    {/* Tag + Date */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      {idea.tag && <Badge variant="secondary">{idea.tag}</Badge>}
+                      <span>{new Date(idea.created_at).toLocaleDateString()}</span>
+                    </div>
+
+                    {/* Status Icons */}
+                    <div className="flex items-center gap-2 text-muted-foreground pt-2">
+                      {hasAttachments && <FileText size={16} />}
+                      {completedActions > 0 && <CheckCircle2 size={16} />}
+                      {pendingActions > 0 && <Zap size={16} />}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
-      </main>
-
-      <Footer />
+      )}
     </div>
   );
-};
-
-export default Page;
+}

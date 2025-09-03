@@ -7,7 +7,6 @@ interface TagPageProps {
 export default async function TagPage({ params }: TagPageProps) {
   const supabase = await createClient();
   const decodedTag = decodeURIComponent(params.tag);
-
   // Get current user
   const {
     data: { user },
@@ -25,38 +24,29 @@ export default async function TagPage({ params }: TagPageProps) {
     .eq("user_id", user.id)
     .eq("tag", decodedTag)
     .order("created_at", { ascending: false });
-
   if (error) {
-    return <p className="p-6">Error: {error.message}</p>;
+    return <p className="p-6 text-red-600">Error: {error.message}</p>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {/* Page Header */}
-      <h1 className="text-2xl font-bold mb-6">
-        Ideas under tag: {decodedTag}
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">
+        Ideas under tag: {params.tag}
       </h1>
 
       {ideas.length === 0 ? (
-        <p>No ideas saved with this tag yet.</p>
+        <p className="text-gray-500">No ideas saved with this tag yet.</p>
       ) : (
-        <div className="rounded-xl shadow border divide-y">
-          {ideas.map((idea) => (
-            <div
-              key={idea.id}
-              className="flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition"
-            >
-              <div>
-                <p className="font-medium">{idea.content}</p>
-                <p className="text-sm">
-                  {new Date(idea.created_at).toLocaleDateString()}
-                </p>
-              </div>
-              {/* Arrow (functionality to be added later) */}
-              <span className="text-xl">›</span>
-            </div>
+        <ul className="space-y-4">
+          {ideas.map((idea: { id: string; content: string; created_at: string }) => (
+            <li key={idea.id} className="border p-4 rounded-lg shadow">
+              <p className="text-lg">{idea.content}</p>
+              <p className="text-sm text-gray-500">
+                {new Date(idea.created_at).toLocaleString()}
+              </p>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
